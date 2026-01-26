@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.0.0-beta1] - 2026-01-26
+- Added: contao 5 support ([#31](https://github.com/heimrichhannot/contao-google-maps-bundle/pull/31), thanks to [@rabauss](https://github.com/rabauss)!)
+- Added: oveleon cookiebar support ([#32](https://github.com/heimrichhannot/contao-google-maps-bundle/pull/32))
+- Changed: dropped list/filter/reader bundle support
+- Changed: execute scripts asynchronously ([#34](https://github.com/heimrichhannot/contao-google-maps-bundle/pull/34), thanks to [@operatorone](https://github.com/operatorone))
+- Fixed: map options without effect ([#34](https://github.com/heimrichhannot/contao-google-maps-bundle/pull/34))
+
 ## [2.11.2] - 2025-03-24
 - Fixed: deprecation warning in MapManager
 

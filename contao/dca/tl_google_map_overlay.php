@@ -11,7 +11,7 @@ declare(strict_types=1);
 use Contao\Controller;
 use Contao\DataContainer;
 use Contao\DC_Table;
-use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
 use HeimrichHannot\GoogleMapsBundle\EventListener\DataContainer\OverlayListener;
 use HeimrichHannot\UtilsBundle\Dca\DateAddedField;
 
@@ -356,7 +356,7 @@ $GLOBALS['TL_DCA']['tl_google_map_overlay'] = [
             'min' => 3,
             'sql' => [
                 'type' => 'blob',
-                'length' => MySqlPlatform::LENGTH_LIMIT_BLOB,
+                'length' => MySQLPlatform::LENGTH_LIMIT_BLOB,
                 'notnull' => false,
             ],
         ],

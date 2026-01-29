@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.0.0-beta2-DEV] - 2026-01-26
+- Changed: changed MapManager::renderMapObject() signature according to the deprecation notice since 2.10 
+
 ## [3.0.0-beta1] - 2026-01-26
 - Added: contao 5 support ([#31](https://github.com/heimrichhannot/contao-google-maps-bundle/pull/31), thanks to [@rabauss](https://github.com/rabauss)!)
 - Added: oveleon cookiebar support ([#32](https://github.com/heimrichhannot/contao-google-maps-bundle/pull/32))

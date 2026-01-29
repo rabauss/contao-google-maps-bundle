@@ -165,17 +165,8 @@ class MapManager
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function renderMapObject(Map $map, ?int $mapId = null, $mapConfigModel = null, array $templateData = []): string
+    public function renderMapObject(Map $map, ?int $mapId = null, GoogleMapModel $mapConfigModel = null, array $templateData = []): string
     {
-        if (\is_array($mapConfigModel) && empty($templateData)) {
-            $templateData = $mapConfigModel;
-            trigger_deprecation('heimrichhannot/contao-google-maps-bundle', '2.10.0', 'Passing templateData as third element to renderMapObject is deprecated since version 2.10.0. Please update your code accordingly.');
-        }
-
-        if (!($mapConfigModel instanceof GoogleMapModel)) {
-            $mapConfigModel = $templateData['mapConfigModel'] ?? null;
-        }
-
         $mapHelper = MapHelperBuilder::create()->build();
 
         if ($mapConfigModel) {

@@ -4,7 +4,7 @@ services:
     autoconfigure: true
 
   HeimrichHannot\GoogleMapsBundle\:
-    resource: '../src/{Command,Controller,EventListener,Security,Util}/*'
+    resource: '../src/{Command,Controller,EventListener,Security,Twig,Util}/*'
     exclude: '../src/EventListener/{MapRendererListener.php,ApiRenderListener.php}'
 
   HeimrichHannot\GoogleMapsBundle\Manager\:
@@ -48,10 +48,3 @@ services:
   huh.google_maps.utils.dca:
     alias: HeimrichHannot\GoogleMapsBundle\Util\DcaUtil
     public: true
-
-  huh.google_maps.twig.extension:
-    class: HeimrichHannot\GoogleMapsBundle\Twig\Extension
-    tags:
-      - { name: twig.extension }
-    arguments:
-      - "@huh.google_maps.map_manager"

@@ -39,9 +39,8 @@ class GoogleMapsExtension extends AbstractExtension
     private function getMapping(): array
     {
         return [
-            'google_map_create' => 'create',
+            'google_map' => 'create',
 
-            'google_map' => 'render',
             'google_map_html' => 'renderHtml',
             'google_map_css' => 'renderCss',
             'google_map_js' => 'renderJs',

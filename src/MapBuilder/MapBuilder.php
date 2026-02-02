@@ -2,6 +2,7 @@
 
 namespace HeimrichHannot\GoogleMapsBundle\MapBuilder;
 
+use Contao\Model;
 use Contao\Model\Collection;
 use HeimrichHannot\GoogleMapsBundle\Event\GoogleMapsPrepareExternalItemEvent;
 use HeimrichHannot\GoogleMapsBundle\Manager\MapManager;
@@ -97,7 +98,7 @@ class MapBuilder implements \Stringable
         if ($this->prepared) {
             return $this;
         }
-        $overlays = $this->buildOverlays($this->mapId, $this->overlays);
+        $overlays = $this->buildOverlays();
 
         $templateData = $this->mapManager->prepareMap($this->mapId, $config, $overlays);
 
@@ -179,16 +180,26 @@ class MapBuilder implements \Stringable
         ]);
     }
 
-    private function buildOverlays(int $mapId, array $overlayDefinitions): ?Collection
+    private function buildOverlays(): ?Collection
     {
+        if (empty($this->overlays)) {
+            return null;
+        }
+
         $overlays = [];
 
-        foreach ($overlayDefinitions as $overlayData) {
+        foreach ($this->overlays as $overlayData) {
 
             if ($overlayData instanceof OverlayModel) {
                 $model = $overlayData;
                 $overlayData = $model->row();
             } else {
+                if ($overlayData instanceof Model) {
+                    $overlayData = $overlayData->row();
+                    unset($overlayData['id']);
+                } elseif (!is_array($overlayData)) {
+                    throw new \RuntimeException('Invalid data passed as overlay definition.');
+                }
                 $model = new OverlayModel();
                 $model->setRow($overlayData);
             }
@@ -197,7 +208,7 @@ class MapBuilder implements \Stringable
                 $overlayData,
                 $model,
                 [
-                    'mapId' => $mapId,
+                    'mapId' => $this->mapId,
                 ]
             );
             $this->eventDispatcher->dispatch($event);

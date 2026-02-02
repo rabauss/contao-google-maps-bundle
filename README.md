@@ -46,21 +46,23 @@ To render your map in a twig template, use `google_map_create`:
 
 ```twig
 {# The shortest way: #}
-{{ google_map_create(2).build }}```
+{{ google_map(2) }}
 
 {# There are more possiblities: #}
-{% set map = google_map_create(2)
-    .addOverlays(overlays)           {# set overlays dynamically #}
-    .build()                        {# build the map #}
+{% set map = google_map(2)
+    .addOverlays(overlays)          {# set overlays dynamically (pass as array|Collection<array|Model> #}
+    .build()                        {# build the map, is needed before working with overlays/ markers #}
  %}
  
-{# Create link to trigger a marker #}
-<a href="#" onclick="{{ map.marker(overlays[1].id).trigger }}">Trigger
+{# Create link to trigger a marker (typically open info window #}
+<a href="#" onclick="{{ map.marker(overlays[1].id).trigger }}">
+    Trigger marker id {{ map.marker(overlays[1].id).variable }}
+</a>
 
 {# Render the map #}
 {{ map }}
 
-{# Render only html, css or js #}
+{# Or render only html, css or js #}
 {{ map.html }}
 {{ map.css }}
 {{ map.js }}
@@ -82,15 +84,6 @@ google_map | ID of the `tl_google_map` instance | {{google_map::1}}
 google_map_html | ID of the `tl_google_map` instance | {{google_map_html::1}}
 google_map_css | ID of the `tl_google_map` instance | {{google_map_css::1}}
 google_map_js | ID of the `tl_google_map` instance | {{google_map_js::1}}
-
-## Twig functions
-
-Name | Arguments | Example
----- | --------- | -------
-google_map | ID of the `tl_google_map` instance | {{ google_map(1) }}
-google_map_html | ID of the `tl_google_map` instance | {{ google_map_html(1) }}
-google_map_css | ID of the `tl_google_map` instance | {{ google_map_css(1) }}
-google_map_js | ID of the `tl_google_map` instance | {{ google_map_js(1) }}
 
 ## TODO
 

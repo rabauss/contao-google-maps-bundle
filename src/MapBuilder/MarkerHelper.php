@@ -1,0 +1,22 @@
+<?php
+
+namespace HeimrichHannot\GoogleMapsBundle\MapBuilder;
+
+use League\Uri\Uri;
+use Symfony\Component\HttpFoundation\Request;
+
+class MarkerHelper
+{
+    public function __construct(
+        public readonly string $variable,
+        public readonly Request $request
+    ) {}
+
+    public function trigger(): string
+    {
+        return sprintf(
+            "new google.maps.event.trigger(%s, 'click'); return false;",
+            $this->variable
+        );
+    }
+}

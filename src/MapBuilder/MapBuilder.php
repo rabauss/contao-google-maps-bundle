@@ -7,7 +7,7 @@ use HeimrichHannot\GoogleMapsBundle\Event\GoogleMapsPrepareExternalItemEvent;
 use HeimrichHannot\GoogleMapsBundle\Manager\MapManager;
 use HeimrichHannot\GoogleMapsBundle\Manager\OverlayManager;
 use HeimrichHannot\GoogleMapsBundle\Model\OverlayModel;
-use HeimrichHannot\GoogleMapsBundle\Twig\OverlayHelper;
+use HeimrichHannot\GoogleMapsBundle\MapBuilder\MarkerHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -99,10 +99,10 @@ class MapBuilder implements \Stringable
         return $this;
     }
 
-    public function getOverlay(int $id): ?OverlayHelper
+    public function getMarker(int $id): ?MarkerHelper
     {
         if (!$this->prepared) {
-            throw new \RuntimeException('Map must be build before accessing overlays.');
+            throw new \RuntimeException('Map must be build before accessing marker.');
         }
 
         $markerVariableMapping = $this->overlayManager->getMarkerVariableMapping();
@@ -110,7 +110,7 @@ class MapBuilder implements \Stringable
             return null;
         }
 
-        return new OverlayHelper(
+        return new MarkerHelper(
             $markerVariableMapping[$id],
             $this->requestStack->getCurrentRequest() ?: new Request()
         );

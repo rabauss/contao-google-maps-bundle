@@ -138,15 +138,22 @@ class MapBuilder implements \Stringable
         );
     }
 
-    public function renderHtml(): string
+    public function cloneWith()
     {
+
+    }
+
+    public function html(): string
+    {
+
+
         return $this->toString([
             'skipCss' => true,
             'skipJs' => true,
         ]);
     }
 
-    public function renderJs(): string
+    public function js(): string
     {
         return $this->toString([
             'skipHtml' => true,
@@ -154,7 +161,7 @@ class MapBuilder implements \Stringable
         ]);
     }
 
-    public function renderCss(): string
+    public function css(): string
     {
         return $this->toString([
             'skipHtml' => true,

@@ -40,8 +40,31 @@ This bundle adds google maps integration to [Contao](https://contao.org/de/). It
     - Twig function (see below)
 
 
+### Twig
 
+To render your map in a twig template, use `google_map_create`:
 
+```twig
+{# The shortest way: #}
+{{ google_map_create(2).build }}```
+
+{# There are more possiblities: #}
+{% set map = google_map_create(2)
+    .addOverlays(overlays)           {# set overlays dynamically #}
+    .build()                        {# build the map #}
+ %}
+ 
+{# Create link to trigger a marker #}
+<a href="#" onclick="{{ map.marker(overlays[1].id).trigger }}">Trigger
+
+{# Render the map #}
+{{ map }}
+
+{# Render only html, css or js #}
+{{ map.html }}
+{{ map.css }}
+{{ map.js }}
+```
 
 
 

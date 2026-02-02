@@ -38,57 +38,8 @@ This bundle adds google maps integration to [Contao](https://contao.org/de/). It
     - Module
     - Insert tag (see below)
     - Twig function (see below)
-    - render a list as map, list config element or reader config element
 
-#### List and reader bundle
 
-For both list and reader bundle a config element is provided to add maps to the items.
-
-For lists you also get the option to render the complete list as map. 
-In your list configuration, check the `renderItemsAsMap` option and do the additional configuration.
-You can use or adapt the bundled default template: `list_google_maps_default.html.twig` and `list_item_google_maps_default.html.twig`.
-
-Typical, your list items don't have the correct fields added and filled to be used as markers on a maps.
-So you need to implement an event listener for the `GoogleMapsPrepareExternalItemEvent` 
-and create or update an overlay object that can be displayed on the map.
-
-```php
-class GoogleMapsSubscriber implements EventSubscriberInterface {
-
-    public static function getSubscribedEvents() {
-        return [GoogleMapsPrepareExternalItemEvent::class => 'onGoogleMapsPrepareExternalItemEvent',];
-    }
-
-    public function onGoogleMapsPrepareExternalItemEvent(GoogleMapsPrepareExternalItemEvent $event): void
-    {
-        if (!$event->getConfigModel() instanceof ListConfigModel) {
-            return;
-        }
-        
-        $item = (object)$event->getItemData();
-        
-        $overlay = new OverlayModel();
-        $overlay->title = $item->headline;
-        $overlay->type = OverlayListener::TYPE_MARKER;
-        if ($item->coordX && $item->coordX) {
-            $overlay->positioningMode = OverlayListener::POSITIONING_MODE_COORDINATE;
-            $overlay->positioningLat = trim($item->coordX);
-            $overlay->positioningLng = trim($item->coordX);
-        } elseif (!empty($item->address)) {
-            $overlay->positioningMode = OverlayListener::POSITIONING_MODE_STATIC_ADDRESS;
-            $overlay->positioningAddress = $item->address;
-        } else {
-            $event->setOverlayModel(null);
-            return;
-        }
-        $overlay->markerType = OverlayListener::MARKER_TYPE_SIMPLE;
-        $overlay->clickEvent = OverlayListener::CLICK_EVENT_INFO_WINDOW;
-        $overlay->infoWindowText = '<p><b>'.$item->headline.'</b></p>';
-        $overlay->published='1';
-        $event->setOverlayModel($overlay);
-    }
-}
-```
 
 
 

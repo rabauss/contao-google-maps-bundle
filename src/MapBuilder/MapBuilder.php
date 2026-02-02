@@ -77,7 +77,7 @@ class MapBuilder implements \Stringable
         return $this;
     }
 
-    public function build(): self
+    public function build(array $config = []): self
     {
         if (!isset($this->mapId)) {
             throw new \RuntimeException('Map ID not set.');
@@ -87,7 +87,7 @@ class MapBuilder implements \Stringable
         }
         $overlays = $this->buildOverlays($this->mapId, $this->overlays);
 
-        $templateData = $this->mapManager->prepareMap($this->mapId, [], $overlays);
+        $templateData = $this->mapManager->prepareMap($this->mapId, $config, $overlays);
 
         if (null === $templateData) {
             throw new \RuntimeException('Map data not found in template.');
@@ -122,18 +122,44 @@ class MapBuilder implements \Stringable
         return $this->toString();
     }
 
-    public function toString(): string
+    public function toString(array $overrideConfig = []): string
     {
         if (!$this->prepared) {
-            $this->build();
+            $this->build($overrideConfig);
         }
 
+        $data = array_merge($this->mapTemplateData, $overrideConfig);
+
         return $this->mapManager->renderMapObject(
-            $this->mapTemplateData['mapModel'],
+            $data['mapModel'],
             $this->mapId,
-            $this->mapTemplateData['mapConfigModel'],
-            $this->mapTemplateData
+            $data['mapConfigModel'],
+            $data
         );
+    }
+
+    public function renderHtml(): string
+    {
+        return $this->toString([
+            'skipCss' => true,
+            'skipJs' => true,
+        ]);
+    }
+
+    public function renderJs(): string
+    {
+        return $this->toString([
+            'skipHtml' => true,
+            'skipCss' => true,
+        ]);
+    }
+
+    public function renderCss(): string
+    {
+        return $this->toString([
+            'skipHtml' => true,
+            'skipJs' => true,
+        ]);
     }
 
     private function buildOverlays(int $mapId, array $overlayDefinitions): ?Collection

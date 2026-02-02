@@ -33,6 +33,18 @@ class MapBuilder implements \Stringable
         return $this;
     }
 
+    public function setConfig(array $config): self
+    {
+        $this->mapTemplateData = $config;
+        return $this;
+    }
+
+    public function addConfig(string $key, $value): self
+    {
+        $this->mapTemplateData[$key] = $value;
+        return $this;
+    }
+
     public function setMapIfIfExist(mixed $mapId): self
     {
         if (empty($mapId)) {
@@ -122,50 +134,48 @@ class MapBuilder implements \Stringable
         return $this->toString();
     }
 
-    public function toString(array $overrideConfig = []): string
+    public function toString(): string
     {
         if (!$this->prepared) {
-            $this->build($overrideConfig);
+            $this->build();
         }
 
-        $data = array_merge($this->mapTemplateData, $overrideConfig);
-
         return $this->mapManager->renderMapObject(
-            $data['mapModel'],
+            $this->mapTemplateData['mapModel'],
             $this->mapId,
-            $data['mapConfigModel'],
-            $data
+            $this->mapTemplateData['mapConfigModel'],
+            $this->mapTemplateData
         );
     }
 
-    public function cloneWith()
+    public function withConfig(array $config = []): self
     {
-
+        $new = clone $this;
+        $new->mapTemplateData = array_merge($new->mapTemplateData ?? [], $config);
+        return $new;
     }
 
-    public function html(): string
+    public function html(): self
     {
-
-
-        return $this->toString([
-            'skipCss' => true,
-            'skipJs' => true,
+        return $this->withConfig([
+            'skipCss' => false,
+            'skipJs' => false,
         ]);
     }
 
-    public function js(): string
+    public function js(): self
     {
-        return $this->toString([
+        return $this->withConfig([
             'skipHtml' => true,
-            'skipCss' => true,
+            'skipCss' => false,
         ]);
     }
 
-    public function css(): string
+    public function css(): self
     {
-        return $this->toString([
+        return $this->withConfig([
             'skipHtml' => true,
-            'skipJs' => true,
+            'skipJs' => false,
         ]);
     }
 

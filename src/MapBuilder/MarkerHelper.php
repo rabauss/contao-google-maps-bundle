@@ -2,7 +2,6 @@
 
 namespace HeimrichHannot\GoogleMapsBundle\MapBuilder;
 
-use League\Uri\Uri;
 use Symfony\Component\HttpFoundation\Request;
 
 class MarkerHelper

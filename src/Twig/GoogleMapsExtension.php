@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace HeimrichHannot\GoogleMapsBundle\Twig;
 
 use HeimrichHannot\GoogleMapsBundle\MapBuilder\MapBuilder;
+use Twig\DeprecatedCallableInfo;
 use Twig\Environment;
 use Twig\Extension\AbstractExtension;
 use Twig\Runtime\EscaperRuntime;
@@ -27,10 +28,27 @@ class GoogleMapsExtension extends AbstractExtension
 
     public function getFunctions(): array
     {
-        $functions = [];
+        $functions = [
+            new TwigFunction(
+                'google_map',
+                [GoogleMapsRuntime::class, 'create'],
+                ['is_safe' => ['html']]
+            ),
+        ];
 
         foreach ($this->getMapping() as $name => $method) {
-            $functions[] = new TwigFunction($name, [GoogleMapsRuntime::class, $method], ['is_safe' => ['html']]);
+            $functions[] = new TwigFunction(
+                $name,
+                [GoogleMapsRuntime::class, $method],
+                [
+                    'is_safe' => ['html'],
+                    'deprecation_info' => new DeprecatedCallableInfo(
+                        'heimrichhannot/contao-google-maps-bundle',
+                        '3.0.0',
+                        'google_map'
+                    ),
+                ]
+            );
         }
 
         return $functions;
@@ -39,8 +57,6 @@ class GoogleMapsExtension extends AbstractExtension
     private function getMapping(): array
     {
         return [
-            'google_map' => 'create',
-
             'google_map_html' => 'renderHtml',
             'google_map_css' => 'renderCss',
             'google_map_js' => 'renderJs',

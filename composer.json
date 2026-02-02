@@ -9,6 +9,7 @@
     "doctrine/dbal": "^3.6 || ^4.0",
     "heimrichhannot/contao-utils-bundle": "^3.6",
     "ivory/google-map": "^6.0",
+    "league/uri-src": "^7.8",
     "mvo/contao-group-widget": "^1.5",
     "symfony/config": "^6.4",
     "symfony/console": "^6.4",

@@ -16,49 +16,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class GoogleMapsPrepareExternalItemEvent extends Event
 {
-    /**
-     * @var array
-     */
-    private $itemData;
-
-    /**
-     * @var OverlayModel
-     */
-    private $overlayModel;
-
-    /**
-     * @var Model
-     */
-    private $configModel;
-
-    public function __construct(array $itemData, OverlayModel $overlayModel, Model $configModel)
-    {
-        $this->itemData = $itemData;
-        $this->overlayModel = $overlayModel;
-        $this->configModel = $configModel;
-    }
-
-    public function getItemData(): array
-    {
-        return $this->itemData;
-    }
-
-    public function getOverlayModel(): ?OverlayModel
-    {
-        return $this->overlayModel;
-    }
-
-    /**
-     * Set the overlay model for the current item. Set null to skip adding a marker
-     * for the current item.
-     */
-    public function setOverlayModel(?OverlayModel $overlayModel = null): void
-    {
-        $this->overlayModel = $overlayModel;
-    }
-
-    public function getConfigModel(): Model
-    {
-        return $this->configModel;
-    }
+    public function __construct(
+        public readonly array $itemData,
+        /**
+         * The overlay model for the current item. Null if no marker should be added
+         */
+        public ?OverlayModel $overlayModel,
+        public Model|array|null $context = null
+    ) {}
 }

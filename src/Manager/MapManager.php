@@ -22,9 +22,11 @@ use HeimrichHannot\GoogleMapsBundle\EventListener\ApiRenderListener;
 use HeimrichHannot\GoogleMapsBundle\EventListener\DataContainer\GoogleMapListener;
 use HeimrichHannot\GoogleMapsBundle\EventListener\MapRendererListener;
 use HeimrichHannot\GoogleMapsBundle\Model\GoogleMapModel;
+use HeimrichHannot\GoogleMapsBundle\Model\OverlayModel;
 use HeimrichHannot\GoogleMapsBundle\Util\LocationUtil;
 use HeimrichHannot\UtilsBundle\Util\FileUtil;
 use HeimrichHannot\UtilsBundle\Util\ModelUtil;
+use HeimrichHannot\UtilsBundle\Util\Utils;
 use Ivory\GoogleMap\Base\Bound;
 use Ivory\GoogleMap\Base\Coordinate;
 use Ivory\GoogleMap\Control\FullscreenControl;
@@ -83,7 +85,10 @@ class MapManager
 
     private CacheInterface $cache;
 
-    public function __construct(ContaoFramework $framework, OverlayManager $overlayManager, ModelUtil $modelUtil, LocationUtil $locationUtil, FileUtil $fileUtil, MapCollection $mapCollection, EventDispatcherInterface $eventDispatcher, CacheInterface $cache)
+    public function __construct(
+        private readonly Utils $utils,
+
+        ContaoFramework $framework, OverlayManager $overlayManager, ModelUtil $modelUtil, LocationUtil $locationUtil, FileUtil $fileUtil, MapCollection $mapCollection, EventDispatcherInterface $eventDispatcher, CacheInterface $cache)
     {
         $this->framework = $framework;
         $this->overlayManager = $overlayManager;
@@ -101,7 +106,7 @@ class MapManager
             return null;
         }
 
-        if (null === ($mapConfig = $this->modelUtil->findModelInstanceByPk('tl_google_map', $mapId))) {
+        if (null === ($mapConfig = GoogleMapModel::findByPk($mapId))) {
             return null;
         }
 
@@ -128,7 +133,10 @@ class MapManager
 
         // add overlays
         if (null === $overlays) {
-            $overlays = $this->modelUtil->findModelInstancesBy('tl_google_map_overlay', ['tl_google_map_overlay.pid=?', 'tl_google_map_overlay.published=?'], [$mapConfig->id, true]);
+            $overlays = OverlayModel::findBy(
+                ['tl_google_map_overlay.pid=?', 'tl_google_map_overlay.published=?'],
+                [$mapConfig->id, true]
+            );
         }
 
         if (null !== $overlays) {

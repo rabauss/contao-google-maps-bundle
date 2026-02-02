@@ -4,7 +4,7 @@ services:
     autoconfigure: true
 
   HeimrichHannot\GoogleMapsBundle\:
-    resource: '../src/{Command,Controller,EventListener,Security,Twig,Util}/*'
+    resource: '../src/{Command,Controller,EventListener,MapBuilder,Security,Twig,Util}/*'
     exclude: '../src/EventListener/{MapRendererListener.php,ApiRenderListener.php}'
 
   HeimrichHannot\GoogleMapsBundle\Manager\:

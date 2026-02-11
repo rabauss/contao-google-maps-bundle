@@ -173,7 +173,7 @@ class MapManager
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function renderMapObject(Map $map, ?int $mapId = null, GoogleMapModel $mapConfigModel = null, array $templateData = []): string
+    public function renderMapObject(Map $map, ?int $mapId = null, ?GoogleMapModel $mapConfigModel = null, array $templateData = []): string
     {
         $mapHelper = MapHelperBuilder::create()->build();
 

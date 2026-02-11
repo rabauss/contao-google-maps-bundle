@@ -1,7 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [3.0.0-beta2-DEV] - 2026-01-26
+## [3.0.0-beta3] - 2026-02-11
+- Fixed: implicit nullable marking warning
+
+## [3.0.0-beta2] - 2026-02-02
 - Added: map builder for more flexible twig integration (`google_map`)
 - Changed: changed MapManager::renderMapObject() signature according to the deprecation notice since 2.10 
 - Changed: update Entity Finder integration

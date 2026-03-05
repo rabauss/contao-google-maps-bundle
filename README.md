@@ -42,7 +42,7 @@ This bundle adds google maps integration to [Contao](https://contao.org/de/). It
 
 ### Twig
 
-To render your map in a twig template, use `google_map_create`:
+To render your map in a twig template, use `google_map` function:
 
 ```twig
 {# The shortest way: #}

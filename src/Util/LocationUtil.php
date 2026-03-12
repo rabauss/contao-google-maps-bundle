@@ -20,19 +20,13 @@ use Symfony\Component\HttpClient\HttpClient;
 
 class LocationUtil
 {
-    const GOOGLE_MAPS_GEOCODE_URL = 'https://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false';
+    public const GOOGLE_MAPS_GEOCODE_URL = 'https://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false';
 
-    protected ContaoFramework $framework;
-
-    protected Utils $utils;
-
-    protected LoggerInterface $logger;
-
-    public function __construct(ContaoFramework $framework, Utils $utils, LoggerInterface $logger)
-    {
-        $this->framework = $framework;
-        $this->utils = $utils;
-        $this->logger = $logger;
+    public function __construct(
+        protected ContaoFramework $framework,
+        protected Utils $utils,
+        protected LoggerInterface $logger,
+    ) {
     }
 
     /**
@@ -75,7 +69,9 @@ class LocationUtil
         } catch (\Exception $e) {
             $this->logger->error(
                 $e->getMessage(),
-                ['contao' => new ContaoContext(__METHOD__, ContaoContext::ERROR)],
+                [
+                    'contao' => new ContaoContext(__METHOD__, ContaoContext::ERROR),
+                ],
             );
 
             return false;

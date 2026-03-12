@@ -11,31 +11,29 @@ declare(strict_types=1);
 namespace HeimrichHannot\GoogleMapsBundle\Service;
 
 use Contao\Config;
-use Http\Client\HttpClient;
 use Http\Message\MessageFactory\GuzzleMessageFactory;
 use Ivory\GoogleMap\Base\Coordinate;
 use Ivory\GoogleMap\Service\Base\Location\CoordinateLocation;
+use Ivory\GoogleMap\Service\Elevation\Request\ElevationRequestInterface;
 use Ivory\GoogleMap\Service\Elevation\Request\PathElevationRequest;
 use Ivory\GoogleMap\Service\Elevation\Request\PositionalElevationRequest;
 use Ivory\GoogleMap\Service\Elevation\Response\ElevationResult;
+use Psr\Http\Client\ClientInterface;
 
 class ElevationService
 {
-    const REQUEST_TYPE_PATH = 'path';
+    public const REQUEST_TYPE_PATH = 'path';
 
-    const REQUEST_TYPE_POSTITIONAL = 'positional';
+    public const REQUEST_TYPE_POSTITIONAL = 'positional';
 
-    const MAX_SAMPLES = 300;
+    public const MAX_SAMPLES = 300;
 
     /**
      * @var \Ivory\GoogleMap\Service\Elevation\ElevationService
      */
     protected $service;
 
-    /**
-     * ElevationService constructor.
-     */
-    public function __construct(HttpClient $httpClient)
+    public function __construct(ClientInterface $httpClient)
     {
         $this->service = new \Ivory\GoogleMap\Service\Elevation\ElevationService($httpClient,
             new GuzzleMessageFactory());
@@ -67,7 +65,7 @@ class ElevationService
                 continue;
             }
 
-            if (!\is_array($coordinate) && !\is_array($coordinate = explode(',', $coordinate))) {
+            if (!\is_array($coordinate) && !\is_array($coordinate = explode(',', (string) $coordinate))) {
                 continue;
             }
 
@@ -78,21 +76,15 @@ class ElevationService
     }
 
     /**
-     * @return PathElevationRequest|PositionalElevationRequest
+     * @return PathElevationRequest|PositionalElevationRequest|ElevationRequestInterface
      */
-    public function getRequest(array $locations, $type = self::REQUEST_TYPE_POSTITIONAL)
+    public function getRequest(array $locations, $type = self::REQUEST_TYPE_POSTITIONAL): ElevationRequestInterface
     {
-        switch ($type) {
-            case self::REQUEST_TYPE_POSTITIONAL:
-                return new PositionalElevationRequest($locations);
-
-                break;
-
-            case self::REQUEST_TYPE_PATH:
-                return new PathElevationRequest([$locations[0], end($locations)]);
-
-                break;
-        }
+        return match ($type) {
+            self::REQUEST_TYPE_POSTITIONAL => new PositionalElevationRequest($locations),
+            self::REQUEST_TYPE_PATH => new PathElevationRequest([$locations[0], end($locations)]),
+            default => throw new \RuntimeException('Unsupported request type'),
+        };
     }
 
     public function setService(\Ivory\GoogleMap\Service\Elevation\ElevationService $service): void

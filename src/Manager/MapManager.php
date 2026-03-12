@@ -51,19 +51,11 @@ use Twig\Error\SyntaxError;
 
 class MapManager
 {
-    const CACHE_KEY_PREFIX = 'googleMaps_map';
+    public const CACHE_KEY_PREFIX = 'googleMaps_map';
 
-    const CACHE_TIME = 86400;
+    public const CACHE_TIME = 86400;
 
-    const GOOGLE_MAPS_STATIC_URL = 'https://maps.googleapis.com/maps/api/staticmap';
-
-    protected ContaoFramework $framework;
-
-    protected OverlayManager $overlayManager;
-
-    protected ModelUtil $modelUtil;
-
-    protected LocationUtil $locationUtil;
+    public const GOOGLE_MAPS_STATIC_URL = 'https://maps.googleapis.com/maps/api/staticmap';
 
     /**
      * @var string
@@ -77,27 +69,17 @@ class MapManager
      */
     protected $maps = [];
 
-    private FileUtil $fileUtil;
-
-    private MapCollection $mapCollection;
-
-    private EventDispatcherInterface $eventDispatcher;
-
-    private CacheInterface $cache;
-
     public function __construct(
         private readonly Utils $utils,
-
-        ContaoFramework $framework, OverlayManager $overlayManager, ModelUtil $modelUtil, LocationUtil $locationUtil, FileUtil $fileUtil, MapCollection $mapCollection, EventDispatcherInterface $eventDispatcher, CacheInterface $cache)
-    {
-        $this->framework = $framework;
-        $this->overlayManager = $overlayManager;
-        $this->modelUtil = $modelUtil;
-        $this->locationUtil = $locationUtil;
-        $this->fileUtil = $fileUtil;
-        $this->mapCollection = $mapCollection;
-        $this->eventDispatcher = $eventDispatcher;
-        $this->cache = $cache;
+        protected ContaoFramework $framework,
+        protected OverlayManager $overlayManager,
+        protected ModelUtil $modelUtil,
+        protected LocationUtil $locationUtil,
+        private readonly FileUtil $fileUtil,
+        private readonly MapCollection $mapCollection,
+        private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly CacheInterface $cache,
+    ) {
     }
 
     public function prepareMap(int $mapId, array $config = [], ?Collection $overlays = null): ?array
@@ -250,7 +232,7 @@ class MapManager
         $apiHelper->getEventDispatcher()->addListener(ApiEvents::JAVASCRIPT, [$listener, 'onApiRender']);
 
         $output = $apiHelper->render($this->mapCollection->getMaps());
-        
+
         // Add loading=async parameter to Google Maps API URL for better performance
         $output = preg_replace(
             '/(https:\/\/maps\.googleapis\.com\/maps\/api\/js\?[^"\']*)/i',

@@ -35,15 +35,9 @@ use Symfony\Contracts\Cache\ItemInterface;
 
 class OverlayManager
 {
-    const CACHE_KEY_PREFIX = 'googleMaps_overlay';
+    public const CACHE_KEY_PREFIX = 'googleMaps_overlay';
 
-    const CACHE_TIME = 86400;
-
-    protected ContaoFramework $framework;
-
-    protected ModelUtil $modelUtil;
-
-    protected LocationUtil $locationUtil;
+    public const CACHE_TIME = 86400;
 
     /**
      * @var string
@@ -55,25 +49,19 @@ class OverlayManager
      */
     protected static $markerVariableMapping = [];
 
-    private FileUtil $fileUtil;
-
-    private InsertTagParser $insertTagParser;
-
-    private CacheInterface $cache;
-
-    public function __construct(ContaoFramework $framework, ModelUtil $modelUtil, LocationUtil $locationUtil, FileUtil $fileUtil, InsertTagParser $insertTagParser, CacheInterface $cache)
-    {
-        $this->framework = $framework;
-        $this->modelUtil = $modelUtil;
-        $this->locationUtil = $locationUtil;
-        $this->fileUtil = $fileUtil;
-        $this->insertTagParser = $insertTagParser;
-        $this->cache = $cache;
+    public function __construct(
+        protected ContaoFramework $framework,
+        protected ModelUtil $modelUtil,
+        protected LocationUtil $locationUtil,
+        private readonly FileUtil $fileUtil,
+        private readonly InsertTagParser $insertTagParser,
+        private readonly CacheInterface $cache,
+    ) {
     }
 
     public function addOverlayToMap(Map $map, OverlayModel $overlayConfig, string $apiKey): void
     {
-        $this->apiKey = $apiKey;
+        self::$apiKey = $apiKey;
 
         switch ($overlayConfig->type) {
             case OverlayListener::TYPE_MARKER:
@@ -152,7 +140,7 @@ class OverlayManager
                     function (ItemInterface $item) use ($overlayConfig) {
                         $item->expiresAfter(static::CACHE_TIME);
 
-                        $coordinates = $this->locationUtil->computeCoordinatesByString($overlayConfig->positioningAddress, $this->apiKey);
+                        $coordinates = $this->locationUtil->computeCoordinatesByString($overlayConfig->positioningAddress, self::$apiKey);
 
                         if (false === $coordinates) {
                             trigger_error('Could not compute coordinates from address. Maybe your Google API key is invalid or geocoding API is not enabled.', E_USER_WARNING);
@@ -258,7 +246,9 @@ class OverlayManager
 
         // events
         if ($overlayConfig->clickEvent) {
-            $marker->addOptions(['clickable' => true]);
+            $marker->addOptions([
+                'clickable' => true,
+            ]);
 
             switch ($overlayConfig->clickEvent) {
                 case OverlayListener::CLICK_EVENT_LINK:

@@ -12,8 +12,8 @@ namespace HeimrichHannot\GoogleMapsBundle\EventListener;
 
 use Contao\Config;
 use Contao\CoreBundle\DataContainer\PaletteManipulator;
-use Contao\CoreBundle\ServiceAnnotation\Callback;
-use Contao\CoreBundle\ServiceAnnotation\Hook;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Contao\DataContainer;
 use Contao\Template;
 use HeimrichHannot\GoogleMapsBundle\Util\DcaUtil;
@@ -23,34 +23,18 @@ use Hofff\Contao\Consent\Bridge\ConsentToolManager;
 
 final class ConsentBridgeListener
 {
-    /**
-     * @var ConsentToolManager
-     */
-    private $consentToolManager;
-
-    /**
-     * @var ConsentIdParser
-     */
-    private $consentIdParser;
-
-    /**
-     * @var DcaUtil
-     */
-    private $dcaUtil;
-
-    public function __construct(ConsentToolManager $consentManager, ConsentIdParser $consentIdParser, DcaUtil $dcaUtil)
-    {
-        $this->consentToolManager = $consentManager;
-        $this->consentIdParser = $consentIdParser;
-        $this->dcaUtil = $dcaUtil;
+    public function __construct(
+        private readonly ConsentToolManager $consentToolManager,
+        private readonly ConsentIdParser $consentIdParser,
+        private readonly DcaUtil $dcaUtil,
+    ) {
     }
 
     /**
      * Adjust the data containers for the consent bridge support. High priority
      * required so that the service tags can be applied.
-     *
-     * @Hook("loadDataContainer", priority=255)
      */
+    #[AsHook('loadDataContainer', priority: 255)]
     public function onLoadDataContainer(string $table): void
     {
         if ([] === $this->consentToolManager->consentTools()) {
@@ -81,9 +65,7 @@ final class ConsentBridgeListener
         }
     }
 
-    /**
-     * @Callback(table="tl_settings", target="config.onload")
-     */
+    #[AsCallback(table: 'tl_settings', target: 'config.onload')]
     public function onLoadSettings(DataContainer $table): void
     {
         if ([] === $this->consentToolManager->consentTools()) {
@@ -96,9 +78,7 @@ final class ConsentBridgeListener
         ;
     }
 
-    /**
-     * @Callback(table="tl_page", target="config.onload")
-     */
+    #[AsCallback(table: 'tl_page', target: 'config.onload')]
     public function onLoadPage(DataContainer $table): void
     {
         if ([] === $this->consentToolManager->consentTools()) {
@@ -112,10 +92,8 @@ final class ConsentBridgeListener
         ;
     }
 
-    /**
-     * @Callback(table="tl_settings", target="fields.googlemaps_consentId.options")
-     * @Callback(table="tl_page", target="fields.googlemaps_consentId.options")
-     */
+    #[AsCallback(table: 'tl_settings', target: 'fields.googlemaps_consentId.options')]
+    #[AsCallback(table: 'tl_page', target: 'fields.googlemaps_consentId.options')]
     public function consentIdOptions(): array
     {
         /** @var array<string, array<string, string>> $options */
@@ -142,9 +120,8 @@ final class ConsentBridgeListener
     /**
      * Adjust the generated map api. Priority -1 ensures it's called after the
      * ReplaceDynamicScriptTagsListener listener.
-     *
-     * @Hook("replaceDynamicScriptTags", priority=-1)
      */
+    #[AsHook('replaceDynamicScriptTags', priority: -1)]
     public function onReplaceDynamicScriptTags(string $buffer): string
     {
         if (!isset($GLOBALS['TL_BODY']['huhGoogleMaps'])) {
@@ -165,9 +142,7 @@ final class ConsentBridgeListener
         return $buffer;
     }
 
-    /**
-     * @Hook("parseTemplate")
-     */
+    #[AsHook('parseTemplate')]
     public function onParseTemplate(Template $template): void
     {
         if (!preg_match('#^(ce|mod)_google_map#', $template->getName())) {
@@ -205,7 +180,9 @@ final class ConsentBridgeListener
         }
 
         $consentIdAsString = $this->dcaUtil->getOverridableProperty('googlemaps_consentId', [
-            (object) ['googlemaps_consentId' => Config::get('googlemaps_consentId')],
+            (object) [
+                'googlemaps_consentId' => Config::get('googlemaps_consentId'),
+            ],
             ['tl_page', $objPage->rootId ?: $objPage->id],
         ]);
 

@@ -25,6 +25,7 @@ use HeimrichHannot\GoogleMapsBundle\EventListener\DataContainer\GoogleMapListene
 use HeimrichHannot\GoogleMapsBundle\EventListener\DataContainer\OverlayListener;
 use HeimrichHannot\GoogleMapsBundle\Model\GoogleMapModel;
 use HeimrichHannot\GoogleMapsBundle\Model\OverlayModel;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Input\InputInterface;
@@ -33,12 +34,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
+#[AsCommand(
+    name: 'huh:google-maps:migrate-dlh',
+    description: 'Migrates existing Maps created using delahaye/dlh_googlemaps.'
+)]
 class MigrateDlhCommand extends Command
 {
-    protected static $defaultName = 'huh:google-maps:migrate-dlh';
-
-    protected static $defaultDescription = 'Migrates existing Maps created using delahaye/dlh_googlemaps.';
-
     protected bool $dryRun = false;
 
     protected array $mapMapper = [];
@@ -49,24 +50,17 @@ class MigrateDlhCommand extends Command
 
     private bool $cleanBeforeMigration;
 
-    private EventDispatcherInterface $dispatcher;
-
-    private ContaoFramework $framework;
-
-    private Connection $connection;
-
-    public function __construct(ContaoFramework $framework, EventDispatcherInterface $eventDispatcher, Connection $connection)
-    {
+    public function __construct(
+        private readonly ContaoFramework $framework,
+        private readonly EventDispatcherInterface $dispatcher,
+        private readonly Connection $connection,
+    ) {
         parent::__construct();
-        $this->framework = $framework;
-        $this->dispatcher = $eventDispatcher;
-        $this->connection = $connection;
     }
 
     protected function configure(): void
     {
         $this
-            ->setDescription(static::$defaultDescription)
             ->addOption('skip-unsupported-field-warnings', null, InputOption::VALUE_NONE, 'Skip warnings indicating that fields don\'t exist anymore in Google Maps v3.')
             ->addOption('skip-contentelements', null, InputOption::VALUE_NONE, 'Skip migration of content elements.')
             ->addOption('skip-frontendmodules', null, InputOption::VALUE_NONE, 'Skip migration of frontend modules.')
@@ -118,7 +112,7 @@ class MigrateDlhCommand extends Command
 
         $this->io->success('dlh_googlemaps migration finished');
 
-        return 0;
+        return Command::SUCCESS;
     }
 
     protected function migrateApiKeys(): void
@@ -255,7 +249,7 @@ class MigrateDlhCommand extends Command
                 $legacyValue = $legacyMap->{$legacyField};
 
                 if (\in_array($legacyField, $fieldsToLower, true)) {
-                    $legacyValue = strtolower($legacyValue);
+                    $legacyValue = strtolower((string) $legacyValue);
                 }
 
                 if (\in_array($legacyField, array_keys($fieldsMappings), true)) {
@@ -285,8 +279,8 @@ class MigrateDlhCommand extends Command
             } else {
                 $map->centerMode = GoogleMapListener::CENTER_MODE_COORDINATE;
 
-                if (strpos($legacyMap->center, ',')) {
-                    $coordinates = explode(',', $legacyMap->center);
+                if (strpos((string) $legacyMap->center, ',')) {
+                    $coordinates = explode(',', (string) $legacyMap->center);
 
                     if (\is_array($coordinates) && \count($coordinates) > 1) {
                         $map->centerLat = $coordinates[0];
@@ -302,12 +296,12 @@ class MigrateDlhCommand extends Command
                 $map->sizeMode = GoogleMapListener::SIZE_MODE_STATIC;
 
                 $map->width = serialize([
-                    'value' => preg_replace('/[^\d]/i', '', $mapSize[0]),
+                    'value' => preg_replace('/[^\d]/i', '', (string) $mapSize[0]),
                     'unit' => 'px',
                 ]);
 
                 $map->height = serialize([
-                    'value' => preg_replace('/[^\d]/i', '', $mapSize[1]),
+                    'value' => preg_replace('/[^\d]/i', '', (string) $mapSize[1]),
                     'unit' => 'px',
                 ]);
             } else {
@@ -413,7 +407,7 @@ class MigrateDlhCommand extends Command
                 $legacyValue = $legacyOverlay->{$legacyField};
 
                 if (\in_array($legacyField, $fieldsToLower, true)) {
-                    $legacyValue = strtolower($legacyValue);
+                    $legacyValue = strtolower((string) $legacyValue);
                 }
 
                 if (\in_array($legacyField, array_keys($fieldsMappings), true)) {
@@ -447,7 +441,7 @@ class MigrateDlhCommand extends Command
             if ($legacyOverlay->singleCoords) {
                 $overlay->positioningMode = OverlayListener::POSITIONING_MODE_COORDINATE;
 
-                if (strpos($legacyOverlay->singleCoords, ',')) {
+                if (strpos((string) $legacyOverlay->singleCoords, ',')) {
                     $coordinates = explode(',', str_replace(' ', '', $legacyOverlay->singleCoords));
 
                     if (\is_array($coordinates) && \count($coordinates) > 1) {
@@ -471,8 +465,14 @@ class MigrateDlhCommand extends Command
                 case OverlayListener::MARKER_TYPE_ICON:
                     $iconSize = StringUtil::deserialize($legacyOverlay->iconSize, true);
 
-                    $overlay->iconWidth = ['value' => $iconSize[0], 'unit' => 'px'];
-                    $overlay->iconHeight = ['value' => $iconSize[1], 'unit' => 'px'];
+                    $overlay->iconWidth = [
+                        'value' => $iconSize[0],
+                        'unit' => 'px',
+                    ];
+                    $overlay->iconHeight = [
+                        'value' => $iconSize[1],
+                        'unit' => 'px',
+                    ];
 
                     $iconAnchor = StringUtil::deserialize($legacyOverlay->iconAnchor, true);
 

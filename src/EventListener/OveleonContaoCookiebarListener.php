@@ -2,24 +2,23 @@
 
 namespace HeimrichHannot\GoogleMapsBundle\EventListener;
 
-use Contao\ContentModel;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Contao\DataContainer;
-use Contao\ModuleModel;
-use HeimrichHannot\GoogleMapsBundle\Controller\ContentElement\GoogleMapsElementController;
 use HeimrichHannot\GoogleMapsBundle\Event\BeforeRenderApiEvent;
+use HeimrichHannot\GoogleMapsBundle\Event\BeforeRenderMapEvent;
 use HeimrichHannot\UtilsBundle\Util\Utils;
 use Ivory\GoogleMap\Helper\Event\ApiEvents;
 use Ivory\GoogleMap\Helper\Formatter\Formatter;
 use Ivory\GoogleMap\Helper\Renderer\Utility\SourceRenderer;
 use Ivory\GoogleMap\Helper\Subscriber\ApiJavascriptSubscriber;
+use Ivory\GoogleMap\Map;
 use Oveleon\ContaoCookiebar\Cookie;
 use Oveleon\ContaoCookiebar\Cookiebar;
 use Oveleon\ContaoCookiebar\Model\CookieModel;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\String\ByteString;
 use Twig\Environment;
 
@@ -30,6 +29,7 @@ class OveleonContaoCookiebarListener
     public function __construct(
         private readonly Utils $utils,
         private readonly Environment $twig,
+        private readonly RequestStack $requestStack,
     )
     {
     }
@@ -118,36 +118,30 @@ class OveleonContaoCookiebarListener
         $event->setCode($event->getApiEvent()->getCode());
     }
 
-    #[AsEventListener(event: 'kernel.response')]
-    public function onKernelResponse(ResponseEvent $event): void
+    #[AsEventListener]
+    public function onBeforeRenderMapEvent(BeforeRenderMapEvent $event): void
     {
-        $request = $event->getRequest();
-        $response = $event->getResponse();
-        $content = $response->getContent();
-
-        if ($request->attributes->has('contentModel')) {
-            $contentModel = $request->attributes->get('contentModel');
-
-            if (!$contentModel instanceof ContentModel) {
-                $contentModel = ContentModel::findByPk($contentModel);
-            }
-
-            // renew $content because using insertTags in modules it could be that contentModel and moduleModel is set
-            $content = $this->parseTemplates($contentModel, $content, $request);
-            $response->setContent($content);
+        $config = $this->findConfig();
+        if (null === $config) {
+            return;
         }
 
-        if ($request->attributes->has('moduleModel')) {
-            $moduleModel = $request->attributes->get('moduleModel');
-
-            if (!$moduleModel instanceof ModuleModel) {
-                $moduleModel = ModuleModel::findByPk($moduleModel);
-            }
-
-            // renew $content because using insertTags in modules it could be that contentModel and moduleModel is set
-            $content = $this->parseTemplates($moduleModel, $content, $request);
-            $response->setContent($content);
+        $request = $this->requestStack->getCurrentRequest();
+        if (null === $request) {
+            return;
         }
+
+        $configModel = CookieModel::findByPk($config['id']);
+        if (null === $configModel) {
+            return;
+        }
+
+        $event->templateData['mapHtml'] = $this->parseHtml(
+            $event->templateData['mapHtml'],
+            $event->map,
+            $request,
+            $configModel,
+        );
     }
 
     private function findConfig(): ?array
@@ -213,46 +207,46 @@ class OveleonContaoCookiebarListener
         $GLOBALS['TL_BODY']['huhGoogleMaps_' . $nonce] = $script;
     }
 
-    private function parseTemplates(ContentModel|ModuleModel $moduleModel, string|bool $content, Request $request): bool|string
+    private function parseHtml(string $content, Map $map, Request $request, CookieModel $configModel): string|array|bool|null
     {
-        if ($moduleModel->type !== GoogleMapsElementController::TYPE) {
-            return $content;
+        if (!str_contains($content, $map->getHtmlId())) {
+            return null;
         }
 
-        $page = $this->utils->request()->getCurrentRootPageModel();
-        $config = $this->findConfig();
-        if (null === $config) {
-            return $content;
-        }
-        $configModel = CookieModel::findByPk($config['id']);
-        if (null === $configModel) {
-            return $content;
+        $template = '@Contao/google_maps/oveleon_cookiebar/blocker.html.twig';
+
+        // support legacy path for bc
+        $legacyTemplateName = '@Contao/oveleon_cookiebar/blocker/default.html.twig';
+        if (
+            $this->twig->getLoader()->exists($legacyTemplateName) &&
+            !str_contains(
+                $this->twig->getLoader()->getSourceContext($legacyTemplateName)->getPath(),
+                'heimrichhannot/contao-google-maps-bundle'
+            )
+        ) {
+            trigger_deprecation(
+                'heimrichhannot/contao-google-maps-bundle',
+                '3.0.0-beta4',
+                'The template path %s is deprecated and will not be supported anymore in version 4.0. Use %s instead.',
+                $legacyTemplateName,
+                $template,
+            );
+            $template = $legacyTemplateName;
         }
 
-        $matches = [];
-        preg_match_all('/map_canvas_[a-z0-9]+/', $content, $matches);
-        if (empty($matches[0])) {
-            return $content;
-        }
-        $canvas = $matches[0][0];
-//        $template = '@Contao/'.($configModel->blockTemplate ?: 'ccb/element_blocker').'.html.twig';
-        $strBlockUrl = $request->getUri();
-
-        $blocker = $this->twig->render('@Contao/oveleon_cookiebar/blocker/default.html.twig', [
+        $blocker = $this->twig->render($template, [
             'cookie' => array_merge($configModel->row(), [
                 'iframeType' => 'googlemaps',
             ]),
-            'redirect' => $strBlockUrl,
-            'locale' => $page->language,
+            'redirect' => $request->getUri(),
+            'locale' => $request->getLocale(),
         ]);
 
-        $html = preg_replace(
-            '/(<div id="'.$canvas.'"[^>]*>)/',
+        return preg_replace(
+            '/(<div id="' . $map->getHtmlId() . '"[^>]*>)/',
             '$1' . $blocker,
             $content
         );
-
-        return $html;
     }
 
 }
